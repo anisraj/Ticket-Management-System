@@ -7,40 +7,49 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
 import {
+  CreateTicketRequest,
   TICKET_PRIORITIES,
   TICKET_TYPES,
   TicketPriority,
   TicketType,
 } from '../model/ticket.model';
-import { JsonPipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { companyEmail } from '../../../shared/validators/company-email.validator';
 import { escalationNotAfterDue } from '../../../shared/validators/date-order.validator';
 import { uniqueValues } from '../../../shared/validators/unique-values.validator';
 import { TicketService } from '../service/ticket-service';
 import { uniqueTitle } from '../../../shared/validators/unique-title.validator';
+import {ToastService} from '../../../core/toast/toast-service';
+import {finalize} from 'rxjs';
+import {HttpErrorResponse} from '@angular/common/http';
 
 type FieldName = 'title' | 'type' | 'priority'
   | 'description' | 'dueDate' | 'escalationDate'
   | 'stepsToReproduce' | 'managerEmail' | 'justification';
 
 const COMPANY_DOMAIN = 'qburst.com';
+const SERVER_FIELDS: readonly FieldName[] = [
+  'title', 'description', 'stepsToReproduce', 'managerEmail', 'justification',
+];
 
 @Component({
   selector: 'app-ticket-form',
-  imports: [ReactiveFormsModule, RouterLink, JsonPipe],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './new-ticket.html',
 })
 export class NewTicket {
   private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
   private readonly ticketService = inject(TicketService);
 
   protected readonly types = TICKET_TYPES;
   protected readonly priorities = TICKET_PRIORITIES;
 
-  protected readonly submitted = signal<unknown>(null);
+  protected readonly saving = signal(false);
+  protected readonly submitError = signal<string | null>(null);
 
   protected readonly form = this.fb.nonNullable.group(
     {
@@ -158,6 +167,9 @@ export class NewTicket {
     if (control.hasError('titleTaken')) {
       return 'A ticket with this title already exists.';
     }
+    if (control.hasError('server')) {
+      return control.getError('server');
+    }
     return null;
   }
 
@@ -183,16 +195,76 @@ export class NewTicket {
   }
 
   protected submit() {
-    if (this.form.invalid || this.form.pending) {
+    if (this.form.invalid || this.form.pending || this.saving()) {
       this.form.markAllAsTouched();
       return;
     }
-    this.submitted.set(this.form.getRawValue());
+
+    this.saving.set(true);
+    this.submitError.set(null);
+
+    this.ticketService
+      .create(this.buildRequest())
+      .pipe(finalize(() => this.saving.set(false)))
+      .subscribe({
+        next: (ticket) => {
+          this.toast.success(`Ticket #${ticket.id} created.`);
+          this.router.navigate(['/tickets', ticket.id]);
+        },
+        error: (err: HttpErrorResponse) => this.showServerErrors(err),
+      });
+  }
+
+  private buildRequest(): CreateTicketRequest {
+    const v = this.form.getRawValue();
+    const textOrNull = (value: string) => value.trim() || null;
+
+    return {
+      title: v.title.trim(),
+      type: v.type,
+      priority: v.priority,
+      description: v.description.trim(),
+      dueDate: v.dueDate || null,
+      escalationDate: v.escalationDate || null,
+      stepsToReproduce: textOrNull(v.stepsToReproduce),
+      managerEmail: textOrNull(v.managerEmail),
+      justification: textOrNull(v.justification),
+      watchers: v.watchers.map((w) => w.trim()),
+    };
+  }
+
+  private showServerErrors(err: HttpErrorResponse) {
+    // 401 and 5xx are already handled by the interceptors.
+    if (err.status !== 400 && err.status !== 409) {
+      return;
+    }
+
+    const messages: string[] = [];
+    let shownOnField = false;
+
+    if (err.error && typeof err.error === 'object') {
+      for (const [field, message] of Object.entries(err.error as Record<string, string>)) {
+        if (SERVER_FIELDS.includes(field as FieldName)) {
+          const control = this.form.controls[field as FieldName];
+          control.setErrors({ server: message });
+          control.markAsTouched();
+          shownOnField = true;
+        } else {
+          messages.push(String(message));   // fields without their own message area
+        }
+      }
+    }
+
+    if (messages.length > 0) {
+      this.submitError.set(messages.join(' '));
+    } else if (!shownOnField) {
+      this.submitError.set('The server did not accept this ticket. Please check the form.');
+    }
   }
 
   protected reset() {
     this.watchers.clear();
     this.form.reset();
-    this.submitted.set(null);
+    this.submitError.set(null);
   }
 }

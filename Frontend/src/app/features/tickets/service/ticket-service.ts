@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_URL } from '../../../core/config/api.config';
-import { Ticket } from '../model/ticket.model';
+import {CreateTicketRequest, Ticket} from '../model/ticket.model';
 import { skipLoading } from '../../../core/http/http-context-tokens';
 
 @Injectable({ providedIn: 'root' })
@@ -22,5 +22,9 @@ export class TicketService {
       params: { title },
       context: skipLoading(),
     });
+  }
+
+  create(body: CreateTicketRequest): Observable<Ticket> {
+    return this.http.post<Ticket>(`${API_URL}/tickets`, body);
   }
 }

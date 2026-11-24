@@ -185,13 +185,19 @@
     }
   </div>
 
+  @if (submitError(); as message) {
+    <p class="rounded border border-red-600 bg-red-50 px-3 py-2 text-sm text-red-800" role="alert">
+      {{ message }}
+    </p>
+  }
+
   <div class="flex gap-3">
     <button
       type="submit"
       class="rounded bg-brand px-4 py-2 text-white hover:bg-brand-light disabled:cursor-not-allowed disabled:opacity-50"
-      [disabled]="form.pending"
+      [disabled]="form.pending || saving()"
     >
-      Create ticket
+      {{ saving() ? 'Saving...' : 'Create ticket' }}
     </button>
     <button
       type="button"
@@ -202,10 +208,3 @@
     </button>
   </div>
 </form>
-
-@if (submitted()) {
-  <div class="mt-6 max-w-2xl rounded border border-green-700 bg-green-50 p-4">
-    <p class="font-medium text-green-900">Form is valid. This is the value:</p>
-    <pre class="mt-2 overflow-x-auto text-sm">{{ submitted() | json }}</pre>
-  </div>
-}
