@@ -1,0 +1,15 @@
+server:
+  port: 3000
+spring:
+  application:
+    name: ticket-api
+  profiles:
+    active: dev
+  jwt:
+    secret: ${JWT_SECRET}
+    accessTokenExpiration: 30
+    refreshTokenExpiration: 604800
+    cookieSecure: false            # true in production (https)
+app:
+  cors:
+    allowed-origin: http://localhost:4200

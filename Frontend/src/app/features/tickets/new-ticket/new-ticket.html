@@ -1,0 +1,211 @@
+<a routerLink="/tickets" class="text-sm text-slate-600 hover:underline">← Back to tickets</a>
+
+<h2 class="mt-3 text-2xl font-semibold">New ticket</h2>
+
+<form [formGroup]="form" (ngSubmit)="submit()" class="mt-4 flex max-w-2xl flex-col gap-4">
+  <div>
+    <label for="title" class="block text-sm font-medium">Title</label>
+    <input
+      id="title"
+      type="text"
+      formControlName="title"
+      class="field-input"
+      [class.border-red-600]="errorOf('title')"
+    />
+    @if (form.controls.title.pending) {
+      <p class="mt-1 text-sm text-gray-600">Checking if this title is free...</p>
+    }
+    @if (errorOf('title'); as message) {
+      <p class="mt-1 text-sm text-red-700">{{ message }}</p>
+    }
+  </div>
+
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div>
+      <label for="type" class="block text-sm font-medium">Type</label>
+      <select id="type" formControlName="type" class="field-input">
+        @for (t of types; track t) {
+          <option [value]="t">{{ t }}</option>
+        }
+      </select>
+    </div>
+
+    <div>
+      <label for="priority" class="block text-sm font-medium">Priority</label>
+      <select id="priority" formControlName="priority" class="field-input">
+        @for (p of priorities; track p) {
+          <option [value]="p">{{ p }}</option>
+        }
+      </select>
+    </div>
+
+    @if (isAccessRequest()) {
+      <div>
+        <label for="managerEmail" class="block text-sm font-medium">Manager email</label>
+        <input
+          id="managerEmail"
+          type="email"
+          formControlName="managerEmail"
+          class="field-input"
+          [class.border-red-600]="errorOf('managerEmail')"
+        />
+        @if (errorOf('managerEmail'); as message) {
+          <p class="mt-1 text-sm text-red-700">{{ message }}</p>
+        }
+      </div>
+    }
+
+  </div>
+
+  <div>
+    <label for="description" class="block text-sm font-medium">Description</label>
+    <textarea
+      id="description"
+      rows="4"
+      formControlName="description"
+      class="field-input"
+      [class.border-red-600]="errorOf('description')"
+    ></textarea>
+    @if (errorOf('description'); as message) {
+      <p class="mt-1 text-sm text-red-700">{{ message }}</p>
+    }
+  </div>
+
+  @if (isBug()) {
+    <div>
+      <label for="stepsToReproduce" class="block text-sm font-medium">Steps to reproduce</label>
+      <textarea
+        id="stepsToReproduce"
+        rows="3"
+        formControlName="stepsToReproduce"
+        class="field-input"
+        [class.border-red-600]="errorOf('stepsToReproduce')"
+      ></textarea>
+      @if (errorOf('stepsToReproduce'); as message) {
+        <p class="mt-1 text-sm text-red-700">{{ message }}</p>
+      }
+    </div>
+  }
+
+  @if (isCritical()) {
+    <div>
+      <label for="justification" class="block text-sm font-medium">Why is this critical?</label>
+      <textarea
+        id="justification"
+        rows="3"
+        formControlName="justification"
+        class="field-input"
+        [class.border-red-600]="errorOf('justification')"
+      ></textarea>
+      @if (errorOf('justification'); as message) {
+        <p class="mt-1 text-sm text-red-700">{{ message }}</p>
+      }
+    </div>
+  }
+
+  <div>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div>
+        <label for="dueDate" class="block text-sm font-medium">Due date (optional)</label>
+        <input
+          id="dueDate"
+          type="date"
+          formControlName="dueDate"
+          class="field-input"
+          [class.border-red-600]="dateOrderError()"
+        />
+      </div>
+
+      <div>
+        <label for="escalationDate" class="block text-sm font-medium">Escalation date (optional)</label>
+        <input
+          id="escalationDate"
+          type="date"
+          formControlName="escalationDate"
+          class="field-input"
+          [class.border-red-600]="dateOrderError()"
+        />
+      </div>
+    </div>
+
+    @if (dateOrderError()) {
+      <p class="mt-1 text-sm text-red-700">
+        Escalation date must be on or before the due date.
+      </p>
+    }
+  </div>
+
+  <div formArrayName="watchers">
+    <div class="flex items-center justify-between">
+      <span class="block text-sm font-medium">Watchers (optional)</span>
+      <button
+        type="button"
+        class="rounded border border-brand px-3 py-1 text-sm text-brand hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+        [disabled]="watchers.length >= maxWatchers"
+        (click)="addWatcher()"
+      >
+        + Add watcher
+      </button>
+    </div>
+
+    @if (watchers.length === 0) {
+      <p class="mt-2 text-sm text-gray-600">No watchers added.</p>
+    }
+
+    <div class="mt-2 flex flex-col gap-3">
+      @for (control of watchers.controls; track control; let i = $index) {
+        <div>
+          <div class="flex gap-2">
+            <input
+              type="email"
+              [formControlName]="i"
+              [attr.aria-label]="'Watcher ' + (i + 1) + ' email'"
+              placeholder="name@example.com"
+              class="field-input"
+              [class.border-red-600]="watcherError(control)"
+            />
+            <button
+              type="button"
+              class="rounded border border-slate-300 px-3 text-sm hover:bg-slate-100"
+              [attr.aria-label]="'Remove watcher ' + (i + 1)"
+              (click)="removeWatcher(i)"
+            >
+              Remove
+            </button>
+          </div>
+          @if (watcherError(control); as message) {
+            <p class="mt-1 text-sm text-red-700">{{ message }}</p>
+          }
+        </div>
+      }
+    </div>
+
+    @if (duplicateError()) {
+      <p class="mt-2 text-sm text-red-700">Each watcher email must be different.</p>
+    }
+  </div>
+
+  <div class="flex gap-3">
+    <button
+      type="submit"
+      class="rounded bg-brand px-4 py-2 text-white hover:bg-brand-light disabled:cursor-not-allowed disabled:opacity-50"
+      [disabled]="form.pending"
+    >
+      Create ticket
+    </button>
+    <button
+      type="button"
+      class="rounded border border-slate-300 px-4 py-2 hover:bg-slate-100"
+      (click)="reset()"
+    >
+      Reset
+    </button>
+  </div>
+</form>
+
+@if (submitted()) {
+  <div class="mt-6 max-w-2xl rounded border border-green-700 bg-green-50 p-4">
+    <p class="font-medium text-green-900">Form is valid. This is the value:</p>
+    <pre class="mt-2 overflow-x-auto text-sm">{{ submitted() | json }}</pre>
+  </div>
+}

@@ -1,0 +1,17 @@
+/* You can add global styles to this file, and also import other style files */
+
+@import 'tailwindcss';
+
+@theme {
+  --color-brand: #1e293b;
+  --color-brand-light: #334155;
+}
+
+@layer components {
+  .nav-item {
+    @apply block w-full rounded px-3 py-2 text-left hover:bg-slate-200;
+  }
+  .field-input {
+    @apply w-full rounded border border-slate-300 px-3 py-2;
+  }
+}

@@ -1,0 +1,45 @@
+<div class="flex min-h-screen flex-col">
+  <header class="flex h-14 items-center gap-3 bg-brand px-4 text-white">
+    <button
+      type="button"
+      class="rounded p-2 hover:bg-brand-light"
+      aria-label="Toggle menu"
+      (click)="toggleNav()"
+    >
+      <span class="block h-0.5 w-6 bg-white"></span>
+      <span class="mt-1.5 block h-0.5 w-6 bg-white"></span>
+      <span class="mt-1.5 block h-0.5 w-6 bg-white"></span>
+    </button>
+    <h1 class="text-lg font-semibold">Ticket Manager</h1>
+
+    <button
+      type="button"
+      class="ml-auto rounded px-3 py-1 text-sm hover:bg-brand-light"
+      (click)="logout()"
+    >
+      Logout
+    </button>
+  </header>
+
+  <div class="flex flex-1">
+    @if (navOpen()) {
+      <nav class="flex w-full max-w-[300px] flex-col gap-2 border-r border-slate-200 bg-slate-50 p-4">
+        @for (item of menuItems; track item.path) {
+          @if (item.allowedRoles === null || item.allowedRoles.includes(auth.role() ?? '')) {
+            <button
+              type="button"
+              (click)="menuClick(item.path)"
+              class="rounded-md bg-indigo-600 px-4 py-2 text-left text-sm font-medium text-white transition-colors duration-200 hover:bg-indigo-700"
+            >
+              {{ item.label }}
+            </button>
+          }
+        }
+      </nav>
+    }
+
+    <main class="flex-1 p-6">
+      <router-outlet />
+    </main>
+  </div>
+</div>

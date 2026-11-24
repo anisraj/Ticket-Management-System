@@ -1,0 +1,63 @@
+package me.anis.ticketmanagement.services;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import lombok.AllArgsConstructor;
+import me.anis.ticketmanagement.config.JwtConfig;
+import me.anis.ticketmanagement.entities.Role;
+import me.anis.ticketmanagement.entities.User;
+import org.springframework.stereotype.Service;
+
+import java.util.Date;
+
+@AllArgsConstructor
+@Service
+public class JwtService {
+    private final JwtConfig jwtConfig;
+
+    public String generateAccessToken(User user) {
+        return generateToken(user, jwtConfig.getAccessTokenExpiration());
+    }
+
+    public String generateRefreshToken(User user) {
+        return generateToken(user, jwtConfig.getRefreshTokenExpiration());
+    }
+
+    private String generateToken(User user, long expirationSeconds) {
+        return Jwts.builder()
+                .subject(user.getId().toString())
+                .claim("email", user.getEmail())
+                .claim("name", user.getName())
+                .claim("role", user.getRole())
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + 1000 * expirationSeconds))
+                .signWith(jwtConfig.getSecretKey())
+                .compact();
+    }
+
+    public boolean validateToken(String token) {
+        try {
+            var claims = getClaims(token);
+            return claims.getExpiration().after(new Date());
+        } catch (JwtException | IllegalArgumentException e) {   // IllegalArgument: empty token
+            return false;
+        }
+    }
+
+    private Claims getClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(jwtConfig.getSecretKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
+    public Long getUserIdFromToken(String token) {
+        return Long.valueOf(getClaims(token).getSubject());
+    }
+
+    public Role getRoleFromToken(String token) {
+        return Role.valueOf(getClaims(token).get("role", String.class));
+    }
+}

@@ -1,0 +1,19 @@
+<a routerLink="/tickets" class="text-sm text-slate-600 hover:underline">← Back to tickets</a>
+
+@if (ticket(); as t) {
+  <div class="mt-4 max-w-2xl rounded border border-slate-300 p-6">
+    <div class="flex items-center justify-between">
+      <h2 class="text-2xl font-semibold">#{{ t.id }} {{ t.title }}</h2>
+      <app-status-badge [status]="t.status" />
+    </div>
+    <p class="mt-4 text-gray-700">{{ t.description }}</p>
+  </div>
+
+  <a [routerLink]="['/tickets', t.id + 1]" class="mt-4 inline-block text-sm text-slate-600 hover:underline">
+    Next ticket →
+  </a>
+} @else if (ticket() === null) {
+  <p class="mt-4 text-red-700">Ticket not found.</p>
+} @else {
+  <p class="mt-4 text-gray-600">Loading...</p>
+}

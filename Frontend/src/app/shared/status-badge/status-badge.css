@@ -1,0 +1,5 @@
+@reference "tailwindcss";
+
+.badge {
+  @apply inline-block rounded-md border-2 px-2.5 py-0.5 text-sm font-medium;
+}
