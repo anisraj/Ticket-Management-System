@@ -11,6 +11,7 @@ import org.mapstruct.Named;
 @Mapper(componentModel = "spring")
 public interface TicketMapper {
     @Mapping(target = "createdBy", source = "createdBy.email")
+    @Mapping(target = "assigneeId", source = "assignee.id")
     TicketDto toDto(Ticket ticket);
 
     @Mapping(target = "id", ignore = true)
@@ -22,6 +23,7 @@ public interface TicketMapper {
     @Mapping(target = "stepsToReproduce", qualifiedByName = "blankToNull")
     @Mapping(target = "managerEmail", qualifiedByName = "blankToNull")
     @Mapping(target = "justification", qualifiedByName = "blankToNull")
+    @Mapping(target = "assignee", ignore = true)
     Ticket toEntity(CreateTicketRequest request);
 
     @Named("trim")

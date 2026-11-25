@@ -15,6 +15,7 @@ export interface Ticket {
   watchers?: string[];
   createdBy?: string;
   createdAt?: string;
+  assigneeId?: number | null;
 }
 
 export interface CreateTicketRequest {

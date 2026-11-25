@@ -25,4 +25,5 @@ public class TicketDto {
     private Set<String> watchers;
     private String createdBy;          // creator's email
     private LocalDateTime createdAt;
+    private Long assigneeId;
 }

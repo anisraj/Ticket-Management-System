@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-11-25T10:59:57+0530",
+    date = "2026-11-25T18:17:54+0530",
     comments = "version: 1.6.3, compiler: javac, environment: Java 22.0.1 (Oracle Corporation)"
 )
 @Component
@@ -28,6 +28,7 @@ public class TicketMapperImpl implements TicketMapper {
         TicketDto ticketDto = new TicketDto();
 
         ticketDto.setCreatedBy( ticketCreatedByEmail( ticket ) );
+        ticketDto.setAssigneeId( ticketAssigneeId( ticket ) );
         ticketDto.setId( ticket.getId() );
         ticketDto.setTitle( ticket.getTitle() );
         ticketDto.setStatus( ticket.getStatus() );
@@ -99,5 +100,13 @@ public class TicketMapperImpl implements TicketMapper {
             return null;
         }
         return createdBy.getEmail();
+    }
+
+    private Long ticketAssigneeId(Ticket ticket) {
+        User assignee = ticket.getAssignee();
+        if ( assignee == null ) {
+            return null;
+        }
+        return assignee.getId();
     }
 }

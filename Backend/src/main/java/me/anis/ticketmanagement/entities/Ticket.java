@@ -68,4 +68,8 @@ public class Ticket {
     @Column(name = "email")
     @Builder.Default
     private Set<String> watchers = new LinkedHashSet<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assignee_id")
+    private User assignee;
 }
