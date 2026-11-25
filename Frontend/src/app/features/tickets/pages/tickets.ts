@@ -1,12 +1,16 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, effect, inject, untracked } from '@angular/core';
+import { Component, computed, effect, inject, linkedSignal, signal, untracked } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { catchError, of, switchMap } from 'rxjs';
+import { switchMap } from 'rxjs';
 import { StatusBadge } from '../../../shared/status-badge/status-badge';
-import { PAGE_SIZES, SortField, TicketPageQuery } from '../model/ticket.model';
+import { PAGE_SIZES, SortField, TicketListItem, TicketPageQuery } from '../model/ticket.model';
 import { isCanonical, parseTicketQuery, sameQuery, toQueryParams } from '../model/ticket-query';
 import { TicketService } from '../service/ticket-service';
+import {LoadState, toLoadState} from '../../../shared/model/load-state';
+import {PageResponse} from '../../../shared/model/page-response.model';
+
+type TicketTableState = LoadState<PageResponse<TicketListItem>>;
 
 @Component({
   selector: 'app-tickets',
@@ -19,29 +23,58 @@ export class Tickets {
   private readonly route = inject(ActivatedRoute);
 
   protected readonly pageSizes = PAGE_SIZES;
+  protected readonly skeletonRows = [1, 2, 3, 4, 5];
 
   // The URL is the only place where the table state is stored.
   private readonly params = toSignal(this.route.queryParamMap, {
     initialValue: this.route.snapshot.queryParamMap,
   });
 
-  // `equal` says: if the values are the same, keep the old object.
-  // Without it, every URL change would create a new object and send a new request.
   private readonly query = computed(() => parseTicketQuery(this.params()), { equal: sameQuery });
 
   protected readonly page = computed(() => this.query().page);
   protected readonly size = computed(() => this.query().size);
   protected readonly sort = computed(() => this.query().sort);
 
-  private readonly result = toSignal(
-    toObservable(this.query).pipe(
-      switchMap((query) => this.ticketService.getPage(query).pipe(catchError(() => of(null)))),
+  // Changing this number sends the same request again (the Try again button).
+  private readonly attempt = signal(0);
+  private readonly request = computed(() => ({ query: this.query(), attempt: this.attempt() }));
+
+  // What the table is doing now: loading, error, empty or success.
+  // Every new request first gives "loading", then one of the other three.
+  protected readonly state = toSignal(
+    toObservable(this.request).pipe(
+      switchMap(({ query }) =>
+        this.ticketService.getPage(query).pipe(toLoadState((page) => page.totalElements === 0)),
+      ),
     ),
+    { initialValue: { status: 'loading' } as TicketTableState },
   );
 
-  protected readonly tickets = computed(() => this.result()?.content ?? []);
-  protected readonly totalElements = computed(() => this.result()?.totalElements ?? 0);
-  protected readonly totalPages = computed(() => Math.max(this.result()?.totalPages ?? 1, 1));
+  // The last page of rows we received. While a new page is loading we keep showing it (dimmed).
+  private readonly current = linkedSignal<TicketTableState, PageResponse<TicketListItem> | null>({
+    source: this.state,
+    computation: (state, previous) => {
+      if (state.status === 'success') {
+        return state.data;
+      }
+      if (state.status === 'loading') {
+        return previous?.value ?? null;
+      }
+      return null;
+    },
+  });
+
+  protected readonly status = computed(() => this.state().status);
+  protected readonly isLoading = computed(() => this.status() === 'loading');
+  protected readonly errorText = computed(() => {
+    const state = this.state();
+    return state.status === 'error' ? state.message : null;
+  });
+
+  protected readonly tickets = computed(() => this.current()?.content ?? []);
+  protected readonly totalElements = computed(() => this.current()?.totalElements ?? 0);
+  protected readonly totalPages = computed(() => Math.max(this.current()?.totalPages ?? 1, 1));
   protected readonly firstRow = computed(() =>
     this.tickets().length === 0 ? 0 : (this.page() - 1) * this.size() + 1,
   );
@@ -61,15 +94,24 @@ export class Tickets {
 
     // 2. If the page is after the last page (for example ?page=999), go to the last page.
     effect(() => {
-      const result = this.result();
-      if (!result) {
-        return;
-      }
-      const lastPage = Math.max(result.totalPages, 1);
-      if (result.page > lastPage) {
-        untracked(() => this.navigate({ ...this.query(), page: lastPage }, true));
+      const state = this.state();
+      if (state.status === 'success') {
+        const lastPage = Math.max(state.data.totalPages, 1);
+        if (state.data.page > lastPage) {
+          untracked(() => this.navigate({ ...this.query(), page: lastPage }, true));
+        }
+      } else if (state.status === 'empty') {
+        untracked(() => {
+          if (this.query().page > 1) {
+            this.navigate({ ...this.query(), page: 1 }, true);
+          }
+        });
       }
     });
+  }
+
+  protected retry() {
+    this.attempt.update((n) => n + 1);
   }
 
   protected previous() {

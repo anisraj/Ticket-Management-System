@@ -1,15 +1,19 @@
 package me.anis.ticketmanagement.services;
 
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import me.anis.ticketmanagement.dtos.PageResponse;
 import me.anis.ticketmanagement.dtos.ticket.CreateTicketRequest;
 import me.anis.ticketmanagement.dtos.ticket.TicketDto;
 import me.anis.ticketmanagement.dtos.ticket.TicketListItemDto;
+import me.anis.ticketmanagement.entities.ActivityAction;
+import me.anis.ticketmanagement.entities.TicketActivity;
 import me.anis.ticketmanagement.entities.TicketStatus;
 import me.anis.ticketmanagement.exceptions.DuplicateTicketTitleException;
 import me.anis.ticketmanagement.exceptions.InvalidQueryException;
 import me.anis.ticketmanagement.exceptions.TicketNotFoundException;
 import me.anis.ticketmanagement.mappers.TicketMapper;
+import me.anis.ticketmanagement.repositories.TicketActivityRepository;
 import me.anis.ticketmanagement.repositories.TicketRepository;
 import me.anis.ticketmanagement.repositories.UserRepository;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -26,6 +30,7 @@ public class TicketService {
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
     private final TicketMapper ticketMapper;
+    private final TicketActivityRepository activityRepository;
 
     private static final int MAX_PAGE_SIZE = 50;
     private static final Set<String> SORT_FIELDS = Set.of("title", "createdAt");
@@ -78,6 +83,7 @@ public class TicketService {
         return ticketRepository.existsByTitleIgnoreCase(title.trim());
     }
 
+    @Transactional
     public TicketDto create(CreateTicketRequest request, Long userId) {
         if (titleExists(request.getTitle())) {
             throw new DuplicateTicketTitleException();
@@ -85,15 +91,21 @@ public class TicketService {
         var user = userRepository.findById(userId).orElseThrow();
 
         var ticket = ticketMapper.toEntity(request);
-        ticket.setStatus(TicketStatus.Open);   // never taken from the request
-        ticket.setCreatedBy(user);             // always the logged-in user
+        ticket.setStatus(TicketStatus.Open);
+        ticket.setCreatedBy(user);
 
         try {
             ticketRepository.saveAndFlush(ticket);
         } catch (DataIntegrityViolationException ex) {
-            // two requests with the same title at the same moment: the unique index stops the second one
             throw new DuplicateTicketTitleException();
         }
+
+        activityRepository.save(TicketActivity.builder()
+                .ticket(ticket)
+                .actor(user)
+                .action(ActivityAction.CREATED)
+                .build());
+
         return ticketMapper.toDto(ticket);
     }
 }

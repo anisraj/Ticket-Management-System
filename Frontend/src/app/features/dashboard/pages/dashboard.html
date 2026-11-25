@@ -1,0 +1,115 @@
+<div class="flex items-center justify-between">
+  <h2 class="text-2xl font-semibold">Dashboard</h2>
+  <button
+    type="button"
+    class="rounded border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+    [disabled]="isLoading()"
+    (click)="refresh()"
+  >
+    Refresh
+  </button>
+</div>
+
+<!-- Summary -->
+<section class="mt-6" [attr.aria-busy]="summary().status === 'loading'">
+  <h3 class="text-lg font-medium">Summary</h3>
+
+  @if (summary().status === 'loading') {
+    <div class="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+      @for (n of placeholders; track n) {
+        <div class="summary-skeleton h-20 animate-pulse rounded border border-slate-200 bg-slate-100"></div>
+      }
+    </div>
+  }
+
+  @if (summaryError(); as message) {
+    <div
+      role="alert"
+      class="summary-error mt-3 flex items-center justify-between gap-3 rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800"
+    >
+      <p>Could not load the summary. {{ message }}</p>
+      <button
+        type="button"
+        class="rounded border border-red-600 px-3 py-1 hover:bg-red-100"
+        (click)="retrySummary()"
+      >
+        Try again
+      </button>
+    </div>
+  }
+
+  @if (cards().length > 0) {
+    <dl class="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+      @for (card of cards(); track card.label) {
+        <div
+          class="summary-card rounded border px-4 py-3"
+          [class.border-red-400]="card.warn"
+          [class.bg-red-50]="card.warn"
+          [class.border-slate-300]="!card.warn"
+        >
+          <dt class="text-sm text-slate-600">{{ card.label }}</dt>
+          <dd class="mt-1 text-2xl font-semibold" [class.text-red-700]="card.warn">
+            {{ card.value }}
+          </dd>
+        </div>
+      }
+    </dl>
+  }
+</section>
+
+<!-- Recent activity -->
+<section class="mt-8" [attr.aria-busy]="activity().status === 'loading'">
+  <h3 class="text-lg font-medium">Recent activity</h3>
+
+  @if (activity().status === 'loading') {
+    <div class="mt-3 space-y-2">
+      @for (n of placeholders; track n) {
+        <div class="activity-skeleton h-10 animate-pulse rounded bg-slate-100"></div>
+      }
+    </div>
+  }
+
+  @if (activityError(); as message) {
+    <div
+      role="alert"
+      class="activity-error mt-3 flex items-center justify-between gap-3 rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800"
+    >
+      <p>Could not load the recent activity. {{ message }}</p>
+      <button
+        type="button"
+        class="rounded border border-red-600 px-3 py-1 hover:bg-red-100"
+        (click)="retryActivity()"
+      >
+        Try again
+      </button>
+    </div>
+  }
+
+  @if (activity().status === 'empty') {
+    <p role="status" class="activity-empty mt-3 text-sm text-slate-600">
+      There is no activity yet.
+    </p>
+  }
+
+  @if (activityItems().length > 0) {
+    <ul class="mt-3 divide-y divide-slate-200 rounded border border-slate-300">
+      @for (item of activityItems(); track item.id) {
+        <li class="activity-item px-4 py-3 text-sm">
+          <p>
+            <span class="font-medium">{{ item.actor }}</span>
+            {{ actionText(item.action) }}
+            <a [routerLink]="['/tickets', item.ticketId]" class="text-brand underline">
+              #{{ item.ticketId }} {{ item.ticketTitle }}
+            </a>
+          </p>
+          <p class="mt-0.5 text-xs text-slate-500">
+            {{ item.createdAt | date: 'medium' }}
+            @if (item.details) {
+              · {{ item.details }}
+            }
+          </p>
+        </li>
+      }
+    </ul>
+  }
+</section>

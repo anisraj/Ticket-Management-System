@@ -17,6 +17,7 @@ export class TicketService {
         size: query.size,
         sort: `${query.sort.field},${query.sort.direction}`,
       },
+      context: skipLoading(),
     });
   }
 
