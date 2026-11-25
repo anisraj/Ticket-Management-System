@@ -35,3 +35,32 @@ export type TicketType = (typeof TICKET_TYPES)[number];
 
 export const TICKET_PRIORITIES = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as const;
 export type TicketPriority = (typeof TICKET_PRIORITIES)[number];
+
+
+export interface TicketListItem {
+  id: number;
+  title: string;
+  status: TicketStatus;
+  type: TicketType;
+  priority: TicketPriority;
+  dueDate: string | null;
+  createdBy: string;
+  createdAt: string;
+}
+
+export const SORT_FIELDS = ['title', 'createdAt'] as const;
+export type SortField = (typeof SORT_FIELDS)[number];
+export type SortDirection = 'asc' | 'desc';
+
+export interface TicketSort {
+  field: SortField;
+  direction: SortDirection;
+}
+
+export interface TicketPageQuery {
+  page: number;
+  size: number;
+  sort: TicketSort;
+}
+
+export const PAGE_SIZES = [5, 10, 20, 50] as const;

@@ -2,6 +2,7 @@ package me.anis.ticketmanagement.mappers;
 
 import me.anis.ticketmanagement.dtos.ticket.CreateTicketRequest;
 import me.anis.ticketmanagement.dtos.ticket.TicketDto;
+import me.anis.ticketmanagement.dtos.ticket.TicketListItemDto;
 import me.anis.ticketmanagement.entities.Ticket;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -32,4 +33,7 @@ public interface TicketMapper {
     default String blankToNull(String value) {
         return value == null || value.isBlank() ? null : value.trim();
     }
+
+    @Mapping(target = "createdBy", source = "createdBy.email")
+    TicketListItemDto toListItem(Ticket ticket);
 }

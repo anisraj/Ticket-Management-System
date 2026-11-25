@@ -6,13 +6,14 @@ import java.util.Set;
 import javax.annotation.processing.Generated;
 import me.anis.ticketmanagement.dtos.ticket.CreateTicketRequest;
 import me.anis.ticketmanagement.dtos.ticket.TicketDto;
+import me.anis.ticketmanagement.dtos.ticket.TicketListItemDto;
 import me.anis.ticketmanagement.entities.Ticket;
 import me.anis.ticketmanagement.entities.User;
 import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-11-24T18:15:58+0530",
+    date = "2026-11-25T10:59:57+0530",
     comments = "version: 1.6.3, compiler: javac, environment: Java 22.0.1 (Oracle Corporation)"
 )
 @Component
@@ -70,6 +71,26 @@ public class TicketMapperImpl implements TicketMapper {
         }
 
         return ticket.build();
+    }
+
+    @Override
+    public TicketListItemDto toListItem(Ticket ticket) {
+        if ( ticket == null ) {
+            return null;
+        }
+
+        TicketListItemDto ticketListItemDto = new TicketListItemDto();
+
+        ticketListItemDto.setCreatedBy( ticketCreatedByEmail( ticket ) );
+        ticketListItemDto.setId( ticket.getId() );
+        ticketListItemDto.setTitle( ticket.getTitle() );
+        ticketListItemDto.setStatus( ticket.getStatus() );
+        ticketListItemDto.setType( ticket.getType() );
+        ticketListItemDto.setPriority( ticket.getPriority() );
+        ticketListItemDto.setDueDate( ticket.getDueDate() );
+        ticketListItemDto.setCreatedAt( ticket.getCreatedAt() );
+
+        return ticketListItemDto;
     }
 
     private String ticketCreatedByEmail(Ticket ticket) {

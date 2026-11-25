@@ -2,8 +2,10 @@ package me.anis.ticketmanagement.controllers;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import me.anis.ticketmanagement.dtos.PageResponse;
 import me.anis.ticketmanagement.dtos.ticket.CreateTicketRequest;
 import me.anis.ticketmanagement.dtos.ticket.TicketDto;
+import me.anis.ticketmanagement.dtos.ticket.TicketListItemDto;
 import me.anis.ticketmanagement.services.TicketService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,8 +21,11 @@ public class TicketController {
     private final TicketService ticketService;
 
     @GetMapping
-    public List<TicketDto> getAllTickets() {
-        return ticketService.getAll();
+    public PageResponse<TicketListItemDto> getTickets(
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequestParam(name = "sort", defaultValue = "createdAt,desc") String sort) {
+        return ticketService.getPage(page, size, sort);
     }
 
     @GetMapping("/{id}")
