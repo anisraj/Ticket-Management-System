@@ -15,6 +15,7 @@ export class Shell {
 
   protected readonly menuItems = [
     { label: 'Tickets', path: '/tickets', allowedRoles: null },
+    { label: 'Tickets (infinite)', path: '/tickets/infinite', allowedRoles: null },
     { label: 'Dashboard', path: '/admin/dashboard', allowedRoles: ['ADMIN'] },
     { label: 'Reports', path: '/admin/reports', allowedRoles: ['ADMIN'] },
   ];

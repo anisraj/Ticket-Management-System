@@ -3,12 +3,12 @@ import { Component, computed, effect, inject, linkedSignal, signal, untracked } 
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { switchMap } from 'rxjs';
-import { StatusBadge } from '../../../shared/status-badge/status-badge';
-import { PAGE_SIZES, SortField, TicketListItem, TicketPageQuery } from '../model/ticket.model';
-import { isCanonical, parseTicketQuery, sameQuery, toQueryParams } from '../model/ticket-query';
-import { TicketService } from '../service/ticket-service';
-import {LoadState, toLoadState} from '../../../shared/model/load-state';
-import {PageResponse} from '../../../shared/model/page-response.model';
+import { StatusBadge } from '../../../../shared/status-badge/status-badge';
+import { PAGE_SIZES, SortField, TicketListItem, TicketPageQuery } from '../../model/ticket.model';
+import { isCanonical, parseTicketQuery, sameQuery, toQueryParams } from '../../model/ticket-query';
+import { TicketService } from '../../service/ticket-service';
+import {LoadState, toLoadState} from '../../../../shared/model/load-state';
+import {PageResponse} from '../../../../shared/model/page-response.model';
 
 type TicketTableState = LoadState<PageResponse<TicketListItem>>;
 
