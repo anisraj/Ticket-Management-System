@@ -1,0 +1,67 @@
+@if (user(); as current) {
+  <div class="relative flex items-center gap-2">
+    <span class="hidden max-w-[12rem] truncate text-sm sm:inline" [title]="current.email">
+      {{ displayName() }}
+    </span>
+
+    @if (showPicture()) {
+      <img
+        class="avatar-picture h-8 w-8 rounded-full object-cover"
+        [src]="picture()"
+        alt=""
+        width="32"
+        height="32"
+        referrerpolicy="no-referrer"
+        (error)="pictureFailed.set(true)"
+      />
+    } @else {
+      <span
+        class="avatar-default flex h-8 w-8 items-center justify-center rounded-full bg-slate-500 text-white"
+        aria-hidden="true"
+      >
+        <svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor">
+          <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-3.3 0-8 1.7-8 5v1h16v-1c0-3.3-4.7-5-8-5Z" />
+        </svg>
+      </span>
+    }
+
+    <button
+      #trigger
+      type="button"
+      class="menu-trigger rounded p-2 hover:bg-brand-light"
+      aria-haspopup="menu"
+      aria-controls="user-menu"
+      [attr.aria-expanded]="open()"
+      [attr.aria-label]="'Account menu for ' + displayName()"
+      (click)="toggle()"
+    >
+      <svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor" aria-hidden="true">
+        <circle cx="12" cy="5" r="2" />
+        <circle cx="12" cy="12" r="2" />
+        <circle cx="12" cy="19" r="2" />
+      </svg>
+    </button>
+
+    @if (open()) {
+      <div
+        id="user-menu"
+        role="menu"
+        class="user-menu absolute right-0 top-full z-20 mt-2 w-56 rounded-md border border-slate-200 bg-white py-1 text-slate-800 shadow-lg"
+      >
+        <div class="border-b border-slate-200 px-4 py-2">
+          <p class="truncate text-sm font-medium">{{ displayName() }}</p>
+          <p class="truncate text-xs text-slate-500">{{ current.email }}</p>
+        </div>
+        <button
+          #logoutItem
+          type="button"
+          role="menuitem"
+          class="logout-item block w-full px-4 py-2 text-left text-sm hover:bg-slate-100 focus:bg-slate-100 focus:outline-none"
+          (click)="logout()"
+        >
+          Logout
+        </button>
+      </div>
+    }
+  </div>
+}

@@ -9,7 +9,10 @@ spring:
     secret: ${JWT_SECRET}
     accessTokenExpiration: 30
     refreshTokenExpiration: 604800
-    cookieSecure: false            # true in production (https)
+    cookieSecure: false
+  google:
+    clientId: ${GOOGLE_AUTH_CLIENT_ID:}
+    allowedDomain: ""
 app:
   cors:
     allowed-origin: http://localhost:4200

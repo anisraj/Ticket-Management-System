@@ -1,6 +1,7 @@
 package me.anis.ticketmanagement.controllers;
 
 import me.anis.ticketmanagement.exceptions.DuplicateTicketTitleException;
+import me.anis.ticketmanagement.exceptions.GoogleUnavailableException;
 import me.anis.ticketmanagement.exceptions.InvalidQueryException;
 import me.anis.ticketmanagement.exceptions.TicketNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -48,6 +49,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<Map<String, String>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
         return ResponseEntity.badRequest().body(Map.of(ex.getName(), "Invalid value"));
+    }
+
+    @ExceptionHandler(GoogleUnavailableException.class)
+    public ResponseEntity<Map<String, String>> handleGoogleUnavailable() {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(Map.of("error", "Google sign-in is not available right now"));
     }
 
 }

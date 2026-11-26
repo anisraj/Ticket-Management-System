@@ -3,10 +3,11 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../core/auth/auth-service';
+import {GoogleButton} from './google-button';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, GoogleButton],
   templateUrl: './login.html',
 })
 export class Login {
@@ -63,12 +64,7 @@ export class Login {
     this.errorMessage.set(null);
 
     this.auth.login(this.form.getRawValue()).subscribe({
-      next: () => {
-        this.loading.set(false);
-        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-        const target = returnUrl?.startsWith('/') ? returnUrl : '/tickets';
-        this.router.navigateByUrl(target);
-      },
+      next: () => this.onLoggedIn(),
       error: (err: HttpErrorResponse) => {
         this.loading.set(false);
         this.errorMessage.set(
@@ -78,5 +74,35 @@ export class Login {
         );
       },
     });
+  }
+
+  protected loginWithGoogle(idToken: string) {
+    this.loading.set(true);
+    this.errorMessage.set(null);
+
+    this.auth.googleLogin(idToken).subscribe({
+      next: () => this.onLoggedIn(),
+      error: (err: HttpErrorResponse) => {
+        this.loading.set(false);
+        this.errorMessage.set(this.googleErrorMessage(err.status));
+      },
+    });
+  }
+
+  private onLoggedIn() {
+    this.loading.set(false);
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+    const target = returnUrl?.startsWith('/') ? returnUrl : '/tickets';
+    this.router.navigateByUrl(target);
+  }
+
+  private googleErrorMessage(status: number): string {
+    if (status === 401) {
+      return 'Google sign-in failed. Please try again.';
+    }
+    if (status === 503) {
+      return 'Google sign-in is not available right now.';
+    }
+    return 'Cannot reach the server. Please try again.';
   }
 }

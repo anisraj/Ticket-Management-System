@@ -1,13 +1,19 @@
 package me.anis.ticketmanagement.services;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import me.anis.ticketmanagement.entities.Role;
+import me.anis.ticketmanagement.entities.User;
 import me.anis.ticketmanagement.repositories.UserRepository;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.Locale;
 
 @AllArgsConstructor
 @Service
@@ -23,5 +29,49 @@ public class UserService implements UserDetailsService {
                 user.getPassword() == null ? "" : user.getPassword(),   // Google users have no password
                 Collections.emptyList()
         );
+    }
+
+    @Transactional
+    public User findOrCreateGoogleUser(GoogleIdToken.Payload payload) {
+        var sub = payload.getSubject();
+        var email = payload.getEmail().toLowerCase(Locale.ROOT);
+        var picture = pictureOf(payload);
+
+        var bySub = userRepository.findByGoogleSub(sub);
+        if (bySub.isPresent()) {
+            var user = bySub.get();
+            user.setPictureUrl(picture);                   // saved when the transaction ends
+            return user;
+        }
+
+        var byEmail = userRepository.findByEmail(email);
+        if (byEmail.isPresent()) {
+            var existing = byEmail.get();
+            if (existing.getGoogleSub() != null && !existing.getGoogleSub().equals(sub)) {
+                throw new BadCredentialsException("This email is linked to another Google account");
+            }
+            existing.setGoogleSub(sub);
+            existing.setPictureUrl(picture);
+            return userRepository.save(existing);
+        }
+
+        var name = payload.get("name") instanceof String text && !text.isBlank()
+                ? text
+                : email.substring(0, email.indexOf('@'));
+        return userRepository.save(User.builder()
+                .name(name)
+                .email(email)
+                .googleSub(sub)
+                .pictureUrl(picture)
+                .role(Role.USER)
+                .build());
+    }
+
+    private String pictureOf(GoogleIdToken.Payload payload) {
+        return payload.get("picture") instanceof String url
+                && url.startsWith("https://")
+                && url.length() <= 500
+                ? url
+                : null;
     }
 }

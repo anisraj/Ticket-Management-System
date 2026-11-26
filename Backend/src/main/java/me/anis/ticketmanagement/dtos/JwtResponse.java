@@ -15,5 +15,7 @@ public class JwtResponse {
     public static class UserInfo {
         private String email;
         private Role role;
+        private String name;
+        private String pictureUrl;
     }
 }

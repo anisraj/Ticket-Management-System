@@ -6,6 +6,8 @@ const USER_KEY = 'user';
 export interface StoredUser {
   email: string;
   role: string;
+  name?: string | null;
+  pictureUrl?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })

@@ -6,10 +6,13 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import me.anis.ticketmanagement.config.JwtConfig;
 import me.anis.ticketmanagement.dtos.JwtResponse;
+import me.anis.ticketmanagement.dtos.auth.GoogleLoginRequest;
 import me.anis.ticketmanagement.dtos.auth.LoginRequest;
 import me.anis.ticketmanagement.entities.User;
 import me.anis.ticketmanagement.repositories.UserRepository;
+import me.anis.ticketmanagement.services.GoogleTokenVerifier;
 import me.anis.ticketmanagement.services.JwtService;
+import me.anis.ticketmanagement.services.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,6 +28,8 @@ public class AuthController {
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private final JwtConfig jwtConfig;
+    private final GoogleTokenVerifier googleTokenVerifier;
+    private final UserService userService;
 
     @PostMapping("/login")
     public ResponseEntity<JwtResponse> login(
@@ -37,16 +42,30 @@ public class AuthController {
                         loginRequest.getPassword()));
 
         var user = userRepository.findByEmail(loginRequest.getEmail()).orElseThrow();
+        return issueSession(user, response);
+    }
+
+    @PostMapping("/google")
+    public ResponseEntity<JwtResponse> googleLogin(
+            @Valid @RequestBody GoogleLoginRequest request,
+            HttpServletResponse response) {
+
+        var payload = googleTokenVerifier.verify(request.getIdToken());
+        var user = userService.findOrCreateGoogleUser(payload);
+        return issueSession(user, response);
+    }
+
+    // the same tokens and the same refresh cookie for both ways of logging in
+    private ResponseEntity<JwtResponse> issueSession(User user, HttpServletResponse response) {
         var accessToken = jwtService.generateAccessToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
-
         response.addCookie(buildRefreshCookie(refreshToken, jwtConfig.getRefreshTokenExpiration()));
-
         return ResponseEntity.ok(toResponse(accessToken, user));
     }
 
     private JwtResponse toResponse(String accessToken, User user) {
-        return new JwtResponse(accessToken, new JwtResponse.UserInfo(user.getEmail(), user.getRole()));
+        return new JwtResponse(accessToken, new JwtResponse.UserInfo(
+                user.getEmail(), user.getRole(), user.getName(), user.getPictureUrl()));
     }
 
     private Cookie buildRefreshCookie(String value, int maxAgeSeconds) {

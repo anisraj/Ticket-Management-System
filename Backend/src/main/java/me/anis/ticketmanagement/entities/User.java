@@ -36,4 +36,7 @@ public class User {
 
     @Column(name = "google_sub")
     private String googleSub;
+
+    @Column(name = "picture_url")
+    private String pictureUrl;
 }

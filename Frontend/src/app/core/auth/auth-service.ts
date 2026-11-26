@@ -5,7 +5,7 @@ import { Observable, tap } from 'rxjs';
 import { API_URL } from '../config/api.config';
 import { skipLoading } from '../http/http-context-tokens';
 import { ToastService } from '../toast/toast-service';
-import { TokenStorage } from './token-storage';
+import { StoredUser, TokenStorage } from './token-storage';
 
 export type Role = 'ADMIN' | 'USER';
 
@@ -16,7 +16,7 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   accessToken: string;
-  user: { email: string; role: Role };
+  user: { email: string; role: Role; name: string | null; pictureUrl: string | null };
 }
 
 @Injectable({ providedIn: 'root' })
@@ -29,9 +29,11 @@ export class AuthService {
   // At startup we only read sessionStorage. No HTTP call.
   private readonly _isLoggedIn = signal(this.tokens.getAccessToken() !== null);
   private readonly _role = signal<Role | null>(this.readSavedRole());
+  private readonly _user = signal<StoredUser | null>(this.tokens.getUser());
 
   readonly isLoggedIn = this._isLoggedIn.asReadonly();
   readonly role = this._role.asReadonly();
+  readonly user = this._user.asReadonly();
 
   login(body: LoginRequest): Observable<LoginResponse> {
     return this.http
@@ -73,16 +75,24 @@ export class AuthService {
     this.tokens.setUser(res.user);
     this._role.set(res.user.role);
     this._isLoggedIn.set(true);
+    this._user.set(res.user);
   }
 
   private clearSession() {
     this.tokens.clear();
     this._role.set(null);
     this._isLoggedIn.set(false);
+    this._user.set(null);
   }
 
   private readSavedRole(): Role | null {
     const role = this.tokens.getUser()?.role;
     return role === 'ADMIN' || role === 'USER' ? role : null;
+  }
+
+  googleLogin(idToken: string): Observable<LoginResponse> {
+    return this.http
+      .post<LoginResponse>(`${API_URL}/auth/google`, { idToken }, { withCredentials: true })
+      .pipe(tap((res) => this.setSession(res)));
   }
 }
