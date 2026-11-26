@@ -90,7 +90,7 @@ export class TicketsInfinite {
     this.error.set(null);
 
     this.ticketService
-      .getPage({ page: this.nextPage(), size: PAGE_SIZE, sort: SORT })
+      .getPage({ page: this.nextPage(), size: PAGE_SIZE, sort: SORT, q: '' })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {

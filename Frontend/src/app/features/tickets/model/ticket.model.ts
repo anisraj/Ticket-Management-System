@@ -62,6 +62,7 @@ export interface TicketPageQuery {
   page: number;
   size: number;
   sort: TicketSort;
+  q: string;
 }
 
 export const PAGE_SIZES = [5, 10, 20, 50] as const;

@@ -24,8 +24,9 @@ public class TicketController {
     public PageResponse<TicketListItemDto> getTickets(
             @RequestParam(name = "page", defaultValue = "1") int page,
             @RequestParam(name = "size", defaultValue = "10") int size,
-            @RequestParam(name = "sort", defaultValue = "createdAt,desc") String sort) {
-        return ticketService.getPage(page, size, sort);
+            @RequestParam(name = "sort", defaultValue = "createdAt,desc") String sort,
+            @RequestParam(name = "q", defaultValue = "") String q) {
+        return ticketService.getPage(page, size, sort, q);
     }
 
     @GetMapping("/{id}")

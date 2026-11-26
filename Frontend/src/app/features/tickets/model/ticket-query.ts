@@ -5,10 +5,12 @@ export const DEFAULT_QUERY: TicketPageQuery = {
   page: 1,
   size: 10,
   sort: { field: 'createdAt', direction: 'desc' },
+  q: '',
 };
 
 const MAX_PAGE = 1_000_000;
-const QUERY_KEYS = ['page', 'size', 'sort'] as const;
+export const MAX_SEARCH_LENGTH = 100;
+const QUERY_KEYS = ['page', 'size', 'sort', 'q'] as const;
 
 // URL -> clean query. Anything wrong becomes the default.
 export function parseTicketQuery(params: ParamMap): TicketPageQuery {
@@ -16,6 +18,7 @@ export function parseTicketQuery(params: ParamMap): TicketPageQuery {
     page: parsePage(params.get('page')),
     size: parseSize(params.get('size')),
     sort: parseSort(params.get('sort')),
+    q: parseSearch(params.get('q')),
   };
 }
 
@@ -25,6 +28,7 @@ export function toQueryParams(query: TicketPageQuery): Params {
     page: query.page === DEFAULT_QUERY.page ? null : query.page,
     size: query.size === DEFAULT_QUERY.size ? null : query.size,
     sort: sameSort(query.sort, DEFAULT_QUERY.sort) ? null : `${query.sort.field},${query.sort.direction}`,
+    q: query.q === '' ? null : query.q,
   };
 }
 
@@ -37,7 +41,7 @@ export function isCanonical(params: ParamMap, query: TicketPageQuery): boolean {
 }
 
 export function sameQuery(a: TicketPageQuery, b: TicketPageQuery): boolean {
-  return a.page === b.page && a.size === b.size && sameSort(a.sort, b.sort);
+  return a.page === b.page && a.size === b.size && sameSort(a.sort, b.sort) && a.q === b.q;
 }
 
 function sameSort(a: TicketSort, b: TicketSort): boolean {
@@ -60,4 +64,8 @@ function parseSort(value: string | null): TicketSort {
     return { field: field as SortField, direction };
   }
   return { ...DEFAULT_QUERY.sort };
+}
+
+function parseSearch(value: string | null): string {
+  return (value ?? '').trim().slice(0, MAX_SEARCH_LENGTH).trim();
 }

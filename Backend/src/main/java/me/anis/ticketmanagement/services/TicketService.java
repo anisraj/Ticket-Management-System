@@ -22,6 +22,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 @Service
@@ -35,18 +36,35 @@ public class TicketService {
     private static final int MAX_PAGE_SIZE = 50;
     private static final Set<String> SORT_FIELDS = Set.of("title", "createdAt");
 
-    public PageResponse<TicketListItemDto> getPage(int page, int size, String sort) {
+    private static final int MAX_SEARCH_LENGTH = 100;
+
+    public PageResponse<TicketListItemDto> getPage(int page, int size, String sort, String q) {
         if (page < 1) {
             throw new InvalidQueryException("page", "Page must be 1 or more");
         }
         if (size < 1 || size > MAX_PAGE_SIZE) {
             throw new InvalidQueryException("size", "Size must be between 1 and " + MAX_PAGE_SIZE);
         }
+        var search = q == null ? "" : q.trim();
+        if (search.length() > MAX_SEARCH_LENGTH) {
+            throw new InvalidQueryException("q", "Search text must be at most " + MAX_SEARCH_LENGTH + " characters");
+        }
         var sortSpec = parseSort(sort);
 
         var pageable = PageRequest.of(page - 1, size, sortSpec.toSort());
-        var result = ticketRepository.findAll(pageable).map(ticketMapper::toListItem);
-        return PageResponse.from(result, sortSpec.asText());
+        var result = search.isEmpty()
+                ? ticketRepository.findAll(pageable)
+                : ticketRepository.search(toLikePattern(search), pageable);
+        return PageResponse.from(result.map(ticketMapper::toListItem), sortSpec.asText());
+    }
+
+    // % and _ are wildcards in LIKE. We escape them with ! so the text is searched as plain text.
+    private String toLikePattern(String text) {
+        var escaped = text.toLowerCase(Locale.ROOT)
+                .replace("!", "!!")
+                .replace("%", "!%")
+                .replace("_", "!_");
+        return "%" + escaped + "%";
     }
 
     private SortSpec parseSort(String sort) {

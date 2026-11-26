@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -32,4 +33,12 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
         TicketStatus getStatus();
         Long getTotal();
     }
+
+    @EntityGraph(attributePaths = {"createdBy"})
+    @Query("""
+        select t from Ticket t
+        where lower(t.title) like :pattern escape '!'
+           or lower(t.description) like :pattern escape '!'
+        """)
+    Page<Ticket> search(@Param("pattern") String pattern, Pageable pageable);
 }

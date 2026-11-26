@@ -1,20 +1,22 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, effect, inject, linkedSignal, signal, untracked } from '@angular/core';
-import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { switchMap } from 'rxjs';
-import { StatusBadge } from '../../../../shared/status-badge/status-badge';
-import { PAGE_SIZES, SortField, TicketListItem, TicketPageQuery } from '../../model/ticket.model';
-import { isCanonical, parseTicketQuery, sameQuery, toQueryParams } from '../../model/ticket-query';
-import { TicketService } from '../../service/ticket-service';
+import { debounceTime, distinctUntilChanged, map, switchMap } from 'rxjs';
 import {LoadState, toLoadState} from '../../../../shared/model/load-state';
 import {PageResponse} from '../../../../shared/model/page-response.model';
+import {PAGE_SIZES, SortField, TicketListItem, TicketPageQuery} from '../../model/ticket.model';
+import {StatusBadge} from '../../../../shared/status-badge/status-badge';
+import {TicketService} from '../../service/ticket-service';
+import {isCanonical, MAX_SEARCH_LENGTH, parseTicketQuery, sameQuery, toQueryParams} from '../../model/ticket-query';
+
 
 type TicketTableState = LoadState<PageResponse<TicketListItem>>;
 
 @Component({
   selector: 'app-tickets',
-  imports: [DatePipe, RouterLink, StatusBadge],
+  imports: [DatePipe, ReactiveFormsModule, RouterLink, StatusBadge],
   templateUrl: './tickets.html',
 })
 export class Tickets {
@@ -35,6 +37,18 @@ export class Tickets {
   protected readonly page = computed(() => this.query().page);
   protected readonly size = computed(() => this.query().size);
   protected readonly sort = computed(() => this.query().sort);
+  protected readonly searchText = computed(() => this.query().q);
+
+  protected readonly maxSearchLength = MAX_SEARCH_LENGTH;
+
+  // The text in the search box. The URL is still the source of truth (see the constructor).
+  protected readonly searchControl = new FormControl(
+    parseTicketQuery(this.route.snapshot.queryParamMap).q,
+    { nonNullable: true },
+  );
+
+  // The last text we put in the URL ourselves while the user was typing.
+  private typedQuery: string | null = null;
 
   // Changing this number sends the same request again (the Try again button).
   private readonly attempt = signal(0);
@@ -85,6 +99,33 @@ export class Tickets {
   protected readonly hasNext = computed(() => this.page() < this.totalPages());
 
   constructor() {
+    // Typing -> wait until the user stops for 300 ms -> ignore it if the URL already has this text
+    // -> put it in the URL and go back to page 1. The table then loads from the URL (switchMap).
+    this.searchControl.valueChanges
+      .pipe(
+        map((text) => text.trim()),
+        debounceTime(300),
+        // normally this compares with the last value that passed; here we compare with the URL
+        distinctUntilChanged((_previous, current) => current === this.query().q),
+        takeUntilDestroyed(),
+      )
+      .subscribe((q) => {
+        this.typedQuery = q;
+        this.navigate({ ...this.query(), q, page: 1 }, true);
+      });
+
+    // URL -> search box. Only when the change did NOT come from typing (Back button, shared link).
+    effect(() => {
+      const q = this.query().q;
+      if (q === this.typedQuery) {
+        this.typedQuery = null;
+        return;
+      }
+      if (this.searchControl.value.trim() !== q) {
+        this.searchControl.setValue(q, { emitEvent: false });
+      }
+    });
+
     // 1. If the URL has wrong or default values, replace it with the clean version.
     effect(() => {
       if (!isCanonical(this.params(), this.query())) {
@@ -108,6 +149,12 @@ export class Tickets {
         });
       }
     });
+  }
+
+  protected clearSearch() {
+    // setValue with an event also drops a search text that is still waiting in the debounce
+    this.searchControl.setValue('');
+    this.navigate({ ...this.query(), q: '', page: 1 }, true);
   }
 
   protected retry() {
