@@ -1,7 +1,9 @@
 import { $a as ɵɵdomElementEnd, Ai as setClassMetadata, Bo as ɵɵnextContext, Fs as ɵɵtextInterpolate1, Ga as ɵɵdefineNgModule, Gn as RendererFactory2, Gt as ChangeDetectionStrategy, Ji as ɵɵInheritDefinitionFeature, Jo as ɵɵprojectionDef, Jt as Component, Ln as NgModuleRef$1, M as createComponent, Nn as NgModule, Ns as ɵɵtext, O as booleanAttribute, Ro as ɵɵlistener, S as ViewChild, Sn as Input, Ua as ɵɵdefineComponent, Vt as ApplicationRef, Wa as ɵɵdefineDirective, Wn as Renderer2, X as input, Xs as ɵɵviewQuery, Ya as ɵɵdomElement, Yi as ɵɵNgOnChangesFeature, Zi as ɵɵadvance, Zn as Service, _o as ɵɵgetInheritedFactory, aa as ɵɵattribute, ca as ɵɵclassMap, co as ɵɵelementEnd, da as ɵɵconditional, eo as ɵɵdomElementStart, fn as ElementRef, fr as ViewContainerRef, go as ɵɵgetCurrentView, io as ɵɵelement, ir as TemplateRef, js as ɵɵtemplate, la as ɵɵclassProp, lo as ɵɵelementStart, pa as ɵɵconditionalCreate, pr as ViewEncapsulation, qa as ɵɵdefineService, qo as ɵɵprojection, r as ChangeDetectorRef, rt as numberAttribute, ss as ɵɵqueryRefresh, un as Directive, vr as afterNextRender, zn as Output, zo as ɵɵloadQuery } from "./core-CP38VavK.js";
-import { I as EventEmitter, P as EnvironmentInjector, T as DOCUMENT, U as InjectionToken, Ui as signal, W as Injector, _ as untracked, dt as SecurityContext, et as NgZone, ua as ɵɵdefineInjector, v as ANIMATION_MODULE_TYPE, va as ɵɵresetView, wr as inject, x as CSP_NONCE, y as APP_ID, ya as ɵɵrestoreView } from "./_resource-chunk-SRLM8pPW.js";
-import { Ct as take, Qn as Subject, T as skip, Tt as debounceTime, Xt as filter, Zn as BehaviorSubject, dn as concat, g as takeUntil, gt as distinctUntilChanged, h as takeWhile, hn as combineLatest, jn as of, rr as Observable, ur as Subscription, vn as map, x as startWith } from "./esm5-Doa4YBQt.js";
-import { C as coerceElement, S as Directionality, T as Platform, _ as ViewportRuler, m as ScrollingModule, p as ScrollDispatcher, w as coerceNumberProperty, x as supportsScrollBehavior, y as BidiModule } from "./scrolling-3AcNnxFv.js";
+import { I as EventEmitter, P as EnvironmentInjector, T as DOCUMENT, U as InjectionToken, Ui as signal, W as Injector, _ as untracked, dt as SecurityContext, et as NgZone, ua as ɵɵdefineInjector, v as ANIMATION_MODULE_TYPE, va as ɵɵresetView, wr as inject, y as APP_ID, ya as ɵɵrestoreView } from "./_resource-chunk-SRLM8pPW.js";
+import { Qn as Subject, T as skip, Tt as debounceTime, Xt as filter, Zn as BehaviorSubject, g as takeUntil, gt as distinctUntilChanged, h as takeWhile, jn as of, rr as Observable, ur as Subscription, vn as map } from "./esm5-Doa4YBQt.js";
+import { t as Platform } from "./_platform-chunk-C8DdCjs3.js";
+import { C as coerceElement, S as Directionality, _ as ViewportRuler, m as ScrollingModule, p as ScrollDispatcher, w as coerceNumberProperty, x as supportsScrollBehavior, y as BidiModule } from "./scrolling-D7suhw0i.js";
+import { a as coerceArray, i as MediaMatcher, r as BreakpointObserver, t as Breakpoints } from "./layout-CDMIdrQ0.js";
 import { r as DomSanitizer } from "./platform-browser-DihMvTi0.js";
 import { jt as Location } from "./common-DBkpuG9k.js";
 // node_modules/@angular/cdk/fesm2022/_fake-event-detection-chunk.mjs
@@ -463,121 +465,6 @@ function _setInnerHtml(element, html, sanitizer) {
 	const cleanHtml = sanitizer.sanitize(SecurityContext.HTML, html);
 	if (cleanHtml === null && (typeof ngDevMode === "undefined" || ngDevMode)) throw new Error(`Could not sanitize HTML: ${html}`);
 	element.innerHTML = trustedHTMLFromString(cleanHtml || "");
-}
-// node_modules/@angular/cdk/fesm2022/_array-chunk.mjs
-function coerceArray(value) {
-	return Array.isArray(value) ? value : [value];
-}
-// node_modules/@angular/cdk/fesm2022/_breakpoints-observer-chunk.mjs
-var mediaQueriesForWebkitCompatibility = /* @__PURE__ */ new Set();
-var mediaQueryStyleNode;
-var MediaMatcher = class MediaMatcher {
-	_platform = inject(Platform);
-	_nonce = inject(CSP_NONCE, { optional: true });
-	_matchMedia;
-	constructor() {
-		this._matchMedia = this._platform.isBrowser && window.matchMedia ? window.matchMedia.bind(window) : noopMatchMedia;
-	}
-	matchMedia(query) {
-		if (this._platform.WEBKIT || this._platform.BLINK) createEmptyStyleRule(query, this._nonce);
-		return this._matchMedia(query);
-	}
-	static ɵfac = function MediaMatcher_Factory(__ngFactoryType__) {
-		return new (__ngFactoryType__ || MediaMatcher)();
-	};
-	static ɵprov = /*@__PURE__*/ ɵɵdefineService({
-		token: MediaMatcher,
-		factory: MediaMatcher.ɵfac
-	});
-};
-(() => {
-	(typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(MediaMatcher, [{ type: Service }], () => [], null);
-})();
-function createEmptyStyleRule(query, nonce) {
-	if (mediaQueriesForWebkitCompatibility.has(query)) return;
-	try {
-		if (!mediaQueryStyleNode) {
-			mediaQueryStyleNode = document.createElement("style");
-			if (nonce) mediaQueryStyleNode.setAttribute("nonce", nonce);
-			mediaQueryStyleNode.setAttribute("type", "text/css");
-			document.head.appendChild(mediaQueryStyleNode);
-		}
-		if (mediaQueryStyleNode.sheet) {
-			mediaQueryStyleNode.sheet.insertRule(`@media ${query.replace(/[{}]/g, "")} {body{ }}`, 0);
-			mediaQueriesForWebkitCompatibility.add(query);
-		}
-	} catch (e) {
-		console.error(e);
-	}
-}
-function noopMatchMedia(query) {
-	return {
-		matches: query === "all" || query === "",
-		media: query,
-		addListener: () => {},
-		removeListener: () => {}
-	};
-}
-var BreakpointObserver = class BreakpointObserver {
-	_mediaMatcher = inject(MediaMatcher);
-	_zone = inject(NgZone);
-	_queries = /* @__PURE__ */ new Map();
-	_destroySubject = new Subject();
-	ngOnDestroy() {
-		this._destroySubject.next();
-		this._destroySubject.complete();
-	}
-	isMatched(value) {
-		return splitQueries(coerceArray(value)).some((mediaQuery) => this._registerQuery(mediaQuery).mql.matches);
-	}
-	observe(value) {
-		const observables = splitQueries(coerceArray(value)).map((query) => this._registerQuery(query).observable);
-		let stateObservable = combineLatest(observables);
-		stateObservable = concat(stateObservable.pipe(take(1)), stateObservable.pipe(skip(1), debounceTime(0)));
-		return stateObservable.pipe(map((breakpointStates) => {
-			const response = {
-				matches: false,
-				breakpoints: {}
-			};
-			breakpointStates.forEach(({ matches, query }) => {
-				response.matches = response.matches || matches;
-				response.breakpoints[query] = matches;
-			});
-			return response;
-		}));
-	}
-	_registerQuery(query) {
-		if (this._queries.has(query)) return this._queries.get(query);
-		const mql = this._mediaMatcher.matchMedia(query);
-		const output = {
-			observable: new Observable((observer) => {
-				const handler = (e) => this._zone.run(() => observer.next(e));
-				mql.addListener(handler);
-				return () => {
-					mql.removeListener(handler);
-				};
-			}).pipe(startWith(mql), map(({ matches }) => ({
-				query,
-				matches
-			})), takeUntil(this._destroySubject)),
-			mql
-		};
-		this._queries.set(query, output);
-		return output;
-	}
-	static ɵfac = function BreakpointObserver_Factory(__ngFactoryType__) {
-		return new (__ngFactoryType__ || BreakpointObserver)();
-	};
-	static ɵprov = /*@__PURE__*/ ɵɵdefineService({
-		token: BreakpointObserver,
-		factory: BreakpointObserver.ɵfac
-	});
-};
-(() => {
-	(typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(BreakpointObserver, [{ type: Service }], null, null);
-})();
-function splitQueries(queries) {
-	return queries.map((query) => query.split(",")).reduce((a1, a2) => a1.concat(a2)).map((query) => query.trim());
 }
 // node_modules/@angular/cdk/fesm2022/observers.mjs
 function shouldIgnoreRecord(record) {
@@ -1685,36 +1572,6 @@ var ConfigurableFocusTrapFactory = class ConfigurableFocusTrapFactory {
 (() => {
 	(typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(ConfigurableFocusTrapFactory, [{ type: Service }], () => [], null);
 })();
-// node_modules/@angular/cdk/fesm2022/layout.mjs
-var LayoutModule = class LayoutModule {
-	static ɵfac = function LayoutModule_Factory(__ngFactoryType__) {
-		return new (__ngFactoryType__ || LayoutModule)();
-	};
-	static ɵmod = /*@__PURE__*/ ɵɵdefineNgModule({ type: LayoutModule });
-	static ɵinj = /*@__PURE__*/ ɵɵdefineInjector({});
-};
-(() => {
-	(typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(LayoutModule, [{
-		type: NgModule,
-		args: [{}]
-	}], null, null);
-})();
-var Breakpoints = {
-	XSmall: "(max-width: 599.98px)",
-	Small: "(min-width: 600px) and (max-width: 959.98px)",
-	Medium: "(min-width: 960px) and (max-width: 1279.98px)",
-	Large: "(min-width: 1280px) and (max-width: 1919.98px)",
-	XLarge: "(min-width: 1920px)",
-	Handset: "(max-width: 599.98px) and (orientation: portrait), (max-width: 959.98px) and (orientation: landscape)",
-	Tablet: "(min-width: 600px) and (max-width: 839.98px) and (orientation: portrait), (min-width: 960px) and (max-width: 1279.98px) and (orientation: landscape)",
-	Web: "(min-width: 840px) and (orientation: portrait), (min-width: 1280px) and (orientation: landscape)",
-	HandsetPortrait: "(max-width: 599.98px) and (orientation: portrait)",
-	TabletPortrait: "(min-width: 600px) and (max-width: 839.98px) and (orientation: portrait)",
-	WebPortrait: "(min-width: 840px) and (orientation: portrait)",
-	HandsetLandscape: "(max-width: 959.98px) and (orientation: landscape)",
-	TabletLandscape: "(min-width: 960px) and (max-width: 1279.98px) and (orientation: landscape)",
-	WebLandscape: "(min-width: 1280px) and (orientation: landscape)"
-};
 // node_modules/@angular/cdk/fesm2022/_test-environment-chunk.mjs
 function _isTestEnvironment() {
 	return typeof __karma__ !== "undefined" && !!__karma__ || typeof jasmine !== "undefined" && !!jasmine || typeof jest !== "undefined" && !!jest || typeof Mocha !== "undefined" && !!Mocha;

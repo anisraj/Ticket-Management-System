@@ -27,10 +27,10 @@
 </div>
 
 <div class="mt-4 overflow-x-auto rounded border border-slate-300" [attr.aria-busy]="isLoading()">
-  <table class="w-full text-left text-sm">
+  <table class="w-full min-w-[56rem] border-separate border-spacing-0 whitespace-nowrap text-left text-sm">
     <thead class="bg-slate-100">
     <tr>
-      <th class="px-4 py-2">ID</th>
+      <th class="sticky left-0 z-10 border-r border-slate-300 bg-slate-100 px-4 py-2">ID</th>
       <th class="px-4 py-2" [attr.aria-sort]="ariaSort('title')">
         <button type="button" class="font-semibold hover:underline" (click)="sortBy('title')">
           Title {{ arrow('title') }}
@@ -51,7 +51,7 @@
       @if (isLoading() && tickets().length === 0) {
         <!-- first load: placeholder rows -->
         @for (row of skeletonRows; track row) {
-          <tr class="skeleton-row border-t border-slate-200">
+        <tr class="skeleton-row [&>td]:border-t [&>td]:border-t-slate-200">
             <td colspan="7" class="px-4 py-3">
               <div class="h-4 animate-pulse rounded bg-slate-200"></div>
             </td>
@@ -59,8 +59,10 @@
         }
       } @else {
         @for (ticket of tickets(); track ticket.id) {
-          <tr class="ticket-row border-t border-slate-200 hover:bg-slate-50">
-            <td class="px-4 py-2">#{{ ticket.id }}</td>
+          <tr class="ticket-row group hover:bg-slate-50 [&>td]:border-t [&>td]:border-t-slate-200">
+            <td class="sticky left-0 z-10 border-r border-slate-300 bg-white px-4 py-2 group-hover:bg-slate-50">
+              #{{ ticket.id }}
+            </td>
             <td class="px-4 py-2">
               <a [routerLink]="['/tickets', ticket.id]" class="text-brand underline">
                 {{ ticket.title }}
