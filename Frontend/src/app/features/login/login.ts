@@ -1,13 +1,13 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../core/auth/auth-service';
 import {GoogleButton} from './google-button';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, GoogleButton],
+  imports: [ReactiveFormsModule, GoogleButton, RouterLink],
   templateUrl: './login.html',
 })
 export class Login {

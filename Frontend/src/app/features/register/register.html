@@ -1,0 +1,151 @@
+<div class="mx-auto mt-10 max-w-lg rounded-lg border border-slate-300 p-6">
+  @if (submitted(); as data) {
+    <h2 class="text-2xl font-semibold">Registration submitted</h2>
+    <p class="mt-1 text-sm text-gray-600">This is the data collected from the form.</p>
+
+    <pre class="mt-4 overflow-x-auto rounded bg-slate-100 p-3 text-sm">{{ data | json }}</pre>
+
+    <div class="mt-4 flex gap-3">
+      <button
+        type="button"
+        class="rounded bg-brand px-4 py-2 text-white hover:bg-brand-light"
+        (click)="registerAnother()"
+      >
+        Register another
+      </button>
+      <a routerLink="/login" class="rounded border border-slate-300 px-4 py-2 hover:bg-slate-100">
+        Back to login
+      </a>
+    </div>
+  } @else {
+    <h2 class="text-2xl font-semibold">User registration</h2>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="mt-6 flex flex-col gap-4" novalidate>
+      <!-- Name -->
+      <div>
+        <label for="name" class="block text-sm font-medium">Name</label>
+        <input
+          id="name"
+          type="text"
+          autocomplete="name"
+          formControlName="name"
+          class="mt-1 w-full rounded border px-3 py-2"
+          [class.border-slate-300]="!errorOf('name')"
+          [class.border-red-600]="errorOf('name')"
+          [attr.aria-invalid]="errorOf('name') ? 'true' : null"
+        />
+        @if (errorOf('name'); as message) {
+          <p class="mt-1 text-sm text-red-700">{{ message }}</p>
+        }
+      </div>
+
+      <!-- Age -->
+      <div>
+        <label for="age" class="block text-sm font-medium">Age</label>
+        <input
+          id="age"
+          type="number"
+          formControlName="age"
+          class="mt-1 w-full rounded border px-3 py-2"
+          [class.border-slate-300]="!errorOf('age')"
+          [class.border-red-600]="errorOf('age')"
+          [attr.aria-invalid]="errorOf('age') ? 'true' : null"
+        />
+        @if (errorOf('age'); as message) {
+          <p class="mt-1 text-sm text-red-700">{{ message }}</p>
+        }
+      </div>
+
+      <!-- Gender: radio buttons -->
+      <fieldset>
+        <legend class="block text-sm font-medium">Gender</legend>
+        <div class="mt-1 flex flex-wrap gap-x-5 gap-y-1">
+          @for (option of genders; track option) {
+            <label class="flex items-center gap-2 text-sm">
+              <input type="radio" formControlName="gender" [value]="option" />
+              {{ option }}
+            </label>
+          }
+        </div>
+        @if (errorOf('gender'); as message) {
+          <p class="mt-1 text-sm text-red-700">{{ message }}</p>
+        }
+      </fieldset>
+
+      <!-- Is active: checkbox -->
+      <label class="flex items-center gap-2 text-sm font-medium">
+        <input type="checkbox" formControlName="isActive" />
+        Is active
+      </label>
+
+      <!-- Mobile -->
+      <div>
+        <label for="mobile" class="block text-sm font-medium">Mobile</label>
+        <input
+          id="mobile"
+          type="tel"
+          inputmode="numeric"
+          maxlength="10"
+          autocomplete="tel"
+          formControlName="mobile"
+          class="mt-1 w-full rounded border px-3 py-2"
+          [class.border-slate-300]="!errorOf('mobile')"
+          [class.border-red-600]="errorOf('mobile')"
+          [attr.aria-invalid]="errorOf('mobile') ? 'true' : null"
+        />
+        @if (errorOf('mobile'); as message) {
+          <p class="mt-1 text-sm text-red-700">{{ message }}</p>
+        }
+      </div>
+
+      <!-- Email -->
+      <div>
+        <label for="email" class="block text-sm font-medium">Email</label>
+        <input
+          id="email"
+          type="email"
+          autocomplete="email"
+          formControlName="email"
+          class="mt-1 w-full rounded border px-3 py-2"
+          [class.border-slate-300]="!errorOf('email')"
+          [class.border-red-600]="errorOf('email')"
+          [attr.aria-invalid]="errorOf('email') ? 'true' : null"
+        />
+        @if (errorOf('email'); as message) {
+          <p class="mt-1 text-sm text-red-700">{{ message }}</p>
+        }
+      </div>
+
+      <!-- Role: dropdown -->
+      <div>
+        <label for="role" class="block text-sm font-medium">Role</label>
+        <select
+          id="role"
+          formControlName="role"
+          class="mt-1 w-full rounded border bg-white px-3 py-2"
+          [class.border-slate-300]="!errorOf('role')"
+          [class.border-red-600]="errorOf('role')"
+          [attr.aria-invalid]="errorOf('role') ? 'true' : null"
+        >
+          <option value="" disabled>Select a role</option>
+          @for (option of roles; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+        @if (errorOf('role'); as message) {
+          <p class="mt-1 text-sm text-red-700">{{ message }}</p>
+        }
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button
+          type="submit"
+          class="rounded bg-brand px-4 py-2 text-white hover:bg-brand-light"
+        >
+          Register
+        </button>
+        <a routerLink="/login" class="text-sm text-slate-600 underline">Back to login</a>
+      </div>
+    </form>
+  }
+</div>
