@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_URL } from '../config/api.config';
 import { skipLoading } from '../http/http-context-tokens';
-import { UserProfile } from './user.model';
+import {CreateUserRequest, UserDto, UserProfile} from './user.model';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -13,5 +13,9 @@ export class UserService {
     return this.http.get<UserProfile>(`${API_URL}/users/${id}`, {
       context: skipLoading(),
     });
+  }
+
+  create(body: CreateUserRequest): Observable<UserDto> {
+    return this.http.post<UserDto>(`${API_URL}/users`, body);
   }
 }

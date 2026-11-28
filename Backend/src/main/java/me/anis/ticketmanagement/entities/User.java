@@ -39,4 +39,18 @@ public class User {
 
     @Column(name = "picture_url")
     private String pictureUrl;
+
+    @Column(name = "age")
+    private Integer age;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "gender")
+    private Gender gender;
+
+    @Column(name = "mobile")
+    private String mobile;
+
+    @Builder.Default
+    @Column(name = "is_active", nullable = false)
+    private boolean active = true;
 }

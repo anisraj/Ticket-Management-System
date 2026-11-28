@@ -1,9 +1,6 @@
 package me.anis.ticketmanagement.controllers;
 
-import me.anis.ticketmanagement.exceptions.DuplicateTicketTitleException;
-import me.anis.ticketmanagement.exceptions.GoogleUnavailableException;
-import me.anis.ticketmanagement.exceptions.InvalidQueryException;
-import me.anis.ticketmanagement.exceptions.TicketNotFoundException;
+import me.anis.ticketmanagement.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -55,6 +52,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleGoogleUnavailable() {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(Map.of("error", "Google sign-in is not available right now"));
+    }
+
+    @ExceptionHandler(DuplicateEmailException.class)
+    public ResponseEntity<Map<String, String>> handleDuplicateEmail() {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("email", "An account with this email already exists"));
     }
 
 }
